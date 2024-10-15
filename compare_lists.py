@@ -37,4 +37,5 @@ def compare_lists(l1,l2, dis_min):
 
     comp = np.c_[matc1,matc2,l1_i.astype(int),l2_i.astype(int),d1]
     
-    return comp
+    #return comp
+    return matc1,matc2,l1_i.astype(int).T,l2_i.astype(int).T,d1.T
