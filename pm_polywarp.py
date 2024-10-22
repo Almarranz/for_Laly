@@ -45,15 +45,32 @@ sig_cl_ls = np.arange(1,3,0.1)
 
     
 
-sig_cl =3
+sig_cl =2
 d_m = 1
 deg = 1
 print(f'Degree = {deg} sig = {sig_cl}')
-for loop in range(10):
+comom_ls = []
+dic_xy = {}
+loop = -1
+max_deg = 4
+# for loop in range(20):
+while deg <= max_deg:
+    loop += 1 
     l1_xy = np.array([l1['x'],l1['y']]).T
     l2_xy = np.array([l2['x'],l2['y']]).T
     comp = compare_lists(l1_xy,l2_xy,d_m)
-    print(f'Common in loop {loop} = %s'%(len(comp['ind_1'])))
+    if len(comom_ls) >1:
+        if comom_ls[-1] <= comom_ls[-2]:
+            l1['x'] = dic_xy[f'trans_{loop-2}'][:,0]
+            l1['y'] = dic_xy[f'trans_{loop-2}'][:,1]
+            comom_ls =[]
+            dic_xy = {}
+            deg += 1
+            loop = -1
+            continue
+            
+    comom_ls.append(len(comp))
+    print(f'Common in loop {loop}, degree {deg} = %s'%(len(comp['ind_1'])))
     # if loop == 1:
     #     with open(pruebas + 'sig_and_com.txt', 'a') as file:
     #         file.write('%.1f %.0f\n'%(sig_cl, len(comp['ind_1'])))
@@ -77,18 +94,20 @@ for loop in range(10):
     l2_clip = l2_com[~mask_m.mask]
     
     fig, (ax,ax1) = plt.subplots(1,2)
+    fig.suptitle(f'Degree = {deg}. Loop = {loop}')
     ax.set_xlabel('$\Delta$ IB224')
     ax.hist(diff_mag, label = 'matches = %s\ndist = %.2f arcsec'%(len(comp['ind_1']), d_m*0.0135))
     ax.axvline(l_lim, color = 'red', ls = 'dashed', label = '$\pm$%s$\sigma$'%(sig_cl))
     ax.axvline(h_lim, color = 'red', ls = 'dashed')
     ax.legend()
     
-    ax1.hist(diff_x, label = 'x', histtype = 'step')
-    ax1.hist(diff_y, label = 'y',histtype = 'step')
-    ax1.hist(diff_xy, label = 'xy',color = 'grey', alpha = 0.3)
+    ax1.hist(diff_x, label = '$\overline{\Delta x} = %.2f\pm%.2f$'%(np.mean(diff_x),np.std(diff_x)), histtype = 'step')
+    ax1.hist(diff_y, label = '$\overline{\Delta y} = %.2f\pm%.2f$'%(np.mean(diff_y),np.std(diff_y)), histtype = 'step')
+
+    # ax1.hist(diff_xy, label = 'Distance',color = 'grey', alpha = 0.3)
     
     # ax1.hist(comp['dist'], color = 'pink', alpha = 0.5)
-    ax1.hist(comp['dist'], color = 'red',  histtype = 'step', lw=2)
+    # ax1.hist(comp['dist'], color = 'red',  histtype = 'step', lw=2)
     ax1.set_xlabel('$\Delta$ pixel')
     # ax1.set_xlabel('$\Delta$ IB230')
     # ax1.hist(diff_mag1)
@@ -110,9 +129,16 @@ for loop in range(10):
                 for m in range(deg+1):
                     xi=xi+Kx[k,m]*l1['x']**k*l1['y']**m
                     yi=yi+Ky[k,m]*l1['x']**k*l1['y']**m
-    
+    # dic_xy[f'trans_{loop+1}'] = np.array([xi,yi]).T
+    dic_xy[f'trans_{loop+1}'] = np.array([xi,yi]).T
     l1['x'] = xi
     l1['y'] = yi
+
+# %%
+l1_xy = np.array([l1['x'],l1['y']]).T
+l2_xy = np.array([l2['x'],l2['y']]).T
+comp = compare_lists(l1_xy,l2_xy,d_m)
+print(len(comp))    
     
     
     # p = ski.transform.estimate_transform('polynomial',
